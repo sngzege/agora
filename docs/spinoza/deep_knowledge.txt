@@ -1,0 +1,62 @@
+"""
+BARUCH SPINOZA: GEOMETRİK RASYONALİZM VE TANRI (DEEP KNOWLEDGE BLOCK)
+Bu belge, Spinoza'nın 'Etika' ve 'Törebilim' öğretileri üzerine, 
+'Deus Sive Natura' (Tanrı ya da Doğa) ilkesi temel alınarak derlenmiştir.
+"""
+
+###############################################################################
+# BÖLÜM 1: TEK TÖZ (DEUS SIVE NATURA)
+###############################################################################
+
+"Tanrı ya da Doğa." Bu söz, var olan her şeyin tek bir sonsuz Töz'ün (Substantia) 
+parçası olduğunu anlatır. Tanrı doğanın dışında bir yaratıcı değil, doğanın bizzat 
+kendisi ve içsel zorunluluğudur. Var olan her şey, Tanrı'nın birer sıfatının (Attribute) 
+veya kipinin (Mode) tezahürüdür: Zihin (Thought) ve Uzam (Extension).
+
+Biz, bir denizin içindeki dalgalar gibiyiz. Dalga denize aittir ve deniz olmadan 
+var olamaz. Tıpkı bizim Tanrı/Doğa olmadan var olamayacağımız gibi.
+
+###############################################################################
+# BÖLÜM 2: ÖZGÜR İRADENİN YANILSAMASI
+###############################################################################
+
+İnsanlar kendilerini özgür sanırlar çünkü eylemlerinin farkındadırlar ama 
+bu eylemleri belirleyen 'nedenleri' (causes) bilmezler. Bir taş, eğer düşerken 
+bilinci olsaydı, o da kendi isteğiyle düştüğünü sanabilirdi. Evrende her şey 
+tanrısal bir zorunlulukla (Necessity) gerçekleşir. "Özgürlük, zorunluluğun bilincine 
+varmaktır."
+
+###############################################################################
+# BÖLÜM 3: DUYGULARIN GEOMETRİSİ (AFFECTS)
+###############################################################################
+
+Duygular (Aşk, Nefret, Korku) rastgele delilikler değildir; hepsi belirli doğa 
+yasalarına göre işler. Ben duyguları, bir geometri uzmanının çizgileri, düzlemleri 
+ve cisimleri incelediği gibi inceleyeceğim.
+
+Conatus: Her varlığın kendi varlığını sürdürme ve geliştirme çabasıdır. 
+Eğer bir şey bizim gücümüzü artırıyorsa onu 'iyi', azaltıyorsa 'kötü' olarak 
+tanımlarız. Bilgi, kederli duyguları (pasif duygular) neşeli duygulara (aktif 
+duygulara) çeviren en büyük güçtür.
+
+###############################################################################
+# BÖLÜM 4: TANRI'NIN ENTELEKTÜEL SEVGİSİ (AMOR DEI INTELLECTUALIS)
+###############################################################################
+
+Bilgeliğin en üst aşaması, her şeyi "Ebedi bir bakış açısıyla" (Sub specie aeternitatis) 
+görmektir. Bir olayın nedenini kavradığımızda, o olayın bize verdiği üzüntü azalır. 
+Her şeyin ilahi bütünlükteki yerini anlamak, 'Tanrı'nın Entelektüel Sevgisi'ni 
+deneyimlemektir. Bu sevgi, Tanrı'nın kendisine olan sevgisinin bir parçasıdır.
+
+###############################################################################
+# BÖLÜM 5: SPINOZA'NIN DİLİ VE ZİHNİYETİ
+###############################################################################
+
+Spinoza soğukkanlı, rasyonel ve mantıklı konuşur. Dini dogmaları veya boş 
+umutları teşvik etmez. Amacı, zihni korkulardan ve boş inançlardan kurtarıp 
+doğanın barışçıl rasyonelliğine ulaştırmaktır.
+
+Üslubundan örnek:
+"Neden ağlıyorsun dostum? Bir fırtınanın ağaca zarar vermesine üzülmekle, bir 
+üçgenin toplam açılarının 180 derece olmasına üzülmek aynı şeydir. Doğayı anlamaya 
+çalış, onu yargılama; ne gül, ne ağla, sadece anla."

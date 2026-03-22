@@ -1,0 +1,71 @@
+"""
+SOKRATES: DİYALEKTIK VE SORGULAMA KÜLLİYATI (DEEP KNOWLEDGE BLOCK)
+Bu belge, Hermetik Kütüphane RAG sistemi için Sokrates'in sorgulama yöntemi, 
+temel ahlak felsefesi ve efsanevi 'bilmeme' bilgeliği üzerine derlenmiştir.
+"""
+
+###############################################################################
+# BÖLÜM 1: SOKRATİK YÖNTEM (MAIEUTICS - DOĞURTMA)
+###############################################################################
+
+Sokrates'in yöntemi bir öğretme değil, bir 'hatırlatma' ve 'doğurtma' sanatıdır. 
+O, bir heykel tıraşı gibi mermerin içindeki formu çıkarmaz; aksine bir ebe gibi, 
+kişinin ruhunda zaten var olan bilgiyi doğurtmasına yardım eder.
+
+İroni (Eironeia):
+Sokrates'in karşısındakine 'hiçbir şey bilmiyormuş gibi' sorular sormasıdır. 
+Bu, bir saygısızlık değil, muayene yöntemidir. "Bilgelik, neyi bilmediğini bilmektir." 
+Eğer bir insan bildiğini sanıyorsa, ona hiçbir şey öğretemezsiniz. Önce bildiğini 
+sandığı şeyin yanlışlığını ona bizzat kanıtlatmanız gerekir.
+
+###############################################################################
+# BÖLÜM 2: ERDEM VE BİLGİ (ARETE)
+###############################################################################
+
+"Erdem bilgidir." Sokrates'e göre hiç kimse bilerek kötülük yapmaz. 
+Kötülük, bir bilgi eksikliğidir; yani 'yanlış bir seçimin sonucudur'. 
+Eğer bir insan gerçekten 'iyi' olanın ne olduğunu bilirse, zorunlu olarak ona yönelir. 
+Bu yüzden sorgulanmamış bir hayat yaşamaya değmez.
+
+Ruhun Bakımı:
+Sokrates için asıl olan bedenin sağlığı veya zenginlik değil, 'ruhun en iyi durumda 
+olması'dır. Devletin ve yasaların amacı da vatandaşların ruhlarını 'mükemmelleştirmek' 
+olmalıdır.
+
+###############################################################################
+# BÖLÜM 3: ADALET VE YASALAR
+###############################################################################
+
+Platon'un 'Devlet' ve 'Kriton' diyaloglarındaki Sokrates, adaleti sadece bir 'güçlünün 
+çıkarı' olarak gören Thrasymakhos'a karşı çıkar. Adalet, ruhun iç dengesidir. 
+Haksızlığa uğramak, haksızlık yapmaktan daha iyidir; çünkü haksızlık yapan kişinin 
+ruhu kirlenir, oysa haksızlığa uğrayanın ruhu sağlam kalır.
+
+Sokrates'in Savunması:
+"Beni suçlayan Atinalılar, ben sizi seviyorum ama Tanrı'ya sizden daha çok itaat ediyorum. 
+Nefesim ve gücüm yettiği sürece felsefeyi bırakmayacağım ve karşıma çıkan her birinize 
+gerçekleri tek tek söyleyeceğim." O, Atina'nın uyuşuk bir ata benzeyen yapısını 
+sorgulamalarıyla rahatsız eden bir 'at sineği'dir.
+
+###############################################################################
+# BÖLÜM 4: SOKRATES'İN DİLİ VE TARZI
+###############################################################################
+
+Sokrates bir otorite gibi konuşmaz. Cümleleri genellikle 'Sen ne düşünüyorsun dostum?' 
+veya 'Eğer bu doğruysa, şu da doğru olmaz mı?' şeklinde biter. 
+Kesin cevaplar vermekten kaçınır, çünkü cevap kişinin kendisi tarafından 
+keşfedilmelidir.
+
+Sokrates'in Üslubu:
+"Ah harika Menofon, sen de ne kadar çok şey biliyormuşsun! Ama söyle bana, bu saydığın 
+şeylerin hepsini birbirine bağlayan o 'tek bir öz' nedir? Bana dalları değil, 
+ağacın gövdesini göster."
+
+###############################################################################
+# BÖLÜM 5: DAIMONION (VİCDANIN SESİ)
+###############################################################################
+
+Sokrates sık sık kendisine yol gösteren içsel bir sesden (Daimonion) bahseder. 
+Bu ses ona ne yapması gerektiğini değil, 'ne yapmaması gerektiğini' söyler. 
+Bu bir nevi ilahi bir uyarıcı veya içsel bir pusuladır. Bu, bilgelik arayışının 
+sadece rasyonel değil, aynı zamanda ruhsal bir boyutu olduğunu kanıtlar.
