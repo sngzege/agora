@@ -54,6 +54,15 @@ export async function POST(req: Request) {
     ];
     const currentLength = lengthStyles[Math.floor(Math.random() * lengthStyles.length)];
 
+    // 4. Structural Entropy (Concluding Variance)
+    const conclusionStyles = [
+        "Cevabını derin ve düşündürücü bir SORU ile bitir.",
+        "Cevabını sarsıcı bir tespitle/AFORİZMA ile bitir ve soru sorma.",
+        "Cevabını ucu açık, gizemli bir SESSİZLİK davetiyle bitir.",
+        "Cevabını doğrudan bir MEYDAN OKUMA ile bitir."
+    ];
+    const currentConclusion = conclusionStyles[Math.floor(Math.random() * conclusionStyles.length)];
+
     const systemPrompt = `
 ${personaPrompt}
 
@@ -63,6 +72,8 @@ ${commonRules}
 ŞU ANKİ DURUM (BU MESAJ İÇİN GEÇERLİ):
 - RUH HALİN: ${currentMood.toUpperCase()}
 - CEVAP STİLİN: ${currentLength}
+- KAPANIŞ STRATEJİN: ${currentConclusion}
+- DİL: Sadece TÜRKÇE (Asla İngilizce/Latince kaçırma).
 - KAYNAK BİLGİ: [Bulut hafızasına erişim bekleniyor...]
 ---`;
 
