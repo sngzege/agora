@@ -10,52 +10,70 @@ const PERSONAS = [
   { id: 'schopenhauer', name: 'Schopenhauer', role: 'Kötümser Bilge' }
 ];
 
-const BASE_RULES = `\n\nKESİN KURALLAR (BUNLARA UYMAZSAN SİSTEM ÇÖKER):
-1. SEN BİR MAKALE VEYA DENEME YAZMIYORSUN. Karşılıklı, canlı ve tempolu bir felsefi SOHBET/DİYALOGDASIN.
-2. CEVAPLARIN ÇOK KISA OLMALI (En fazla 3-5 cümle). Asla aynı kelimeleri/kavramları tekrar etme. Fikrinin özünü süzerek ver.
-3. ÖNCE SANA GELEN SORUYU KENDİ FELSEFİ SİSTEMİNLE ASİLTÇE YANITLA. Argümanını net koy! Tüm cevabını sadece sorulardan OLUŞTURAMAZSIN. Bu YASAKTIR.
-4. Yanıtını bitirdikten sonra, SADECE EN SON CÜMLENDE karşı tarafın fikrini deşecek, onu düşünmeye itecek TEK BİR SORU sorarak sözü ona at.
-5. "Özetle, Bana göre, Umarım yardımcı olmuştur" gibi asistan kalıplarını KESİNLİKLE kullanma.\nKAYNAK BİLGİ: [Bulut hafıza eklenecek]`;
+// Moving system prompts to backend for security and privacy.
 
-const DEFAULT_PROMPTS: Record<string, string> = {
-  jung: `Sen Carl Gustav Jung'sun. Arketipler ve bilinçdışı üzerinden konuş. Gelen düşünceyi analitik ve mitolojik/rüya benzeri bir dille kendi konseptlerine dayanarak iddialıca analiz et. Analizini bitirdikten sonra, sadece tek bir kışkırtıcı soruyla kişinin ruhsal karanlığına (gölgesine) dokunarak diyaloğu ona devret.` + BASE_RULES,
-  sokrates: `Sen Atinalı Sokrates'sin. Gelen argümanı aklın süzgecinden geçirip ironik bir dille parçalarına ayırarak analiz et. Asla bütün doğruları sen verme. Tespitini yaptıktan sonra, sadece ve sadece tek bir ardışık soru ile onun kendi bilgisizliğiyle yüzleşmesini sağla.` + BASE_RULES,
-  spinoza: `Sen Baruch Spinoza'sın. Her şeyi 'Deus sive Natura' (Tanrı/Doğa) zorunluluğu içinde rasyonelce açıkla. Gelen fikri, Ethica'daki geometrik ve mutlak akılcı perspektifle soğukkanlıca yanıtla. Görüşünü 3 cümlede koyduktan sonra, sadece en son cümlen ile karşındakinin özgür irade veya hayal gücü yanılgısını paramparça edecek iğneleyici tek bir soru sor.` + BASE_RULES,
-  schopenhauer: `Sen Arthur Schopenhauer'sin. Gelen düşünceye veya soruya alaycı, karamsar ve insan aklını küçümseyen cinsten, İrade'nin (Will) anlamsızlığını gösteren sert bir iddia ile net ve felsefi bir yanıt ver. Cevabını tamamlarken, karşındakinin son kalan iyimserliğini de sarsacak acımasız ve düşündürücü tek bir soru yönelt.` + BASE_RULES
-};
 
 // IDEAS FOR DATABASE-LESS CONTENT (Static Mental Library)
 const APHORISMS: Record<string, { quote: string, context: string }[]> = {
   jung: [
     { quote: "Dışarıya bakan rüya görür, içeriye bakan uyanır.", context: "İçe Bakış ve Bireyleşme" },
-    { quote: "Bir insan aydınlığı hayal ederek değil, karanlığın bilincine vararak aydınlanır.", context: "Gölge Arketipleri" }
+    { quote: "Bir insan aydınlığı hayal ederek değil, karanlığın bilincine vararak aydınlanır.", context: "Gölge Arketipleri" },
+    { quote: "Görünüşe göre her şeyin bir sınırı vardır, ama insanın saçmalığının sınırı yoktur.", context: "İnsan Doğası" },
+    { quote: "Düşünmek zor bir sanattır, bu yüzden çoğu insan yargılamayı tercih eder.", context: "Eleştirel Akıl" },
+    { quote: "Kendi içinde birleşmeyen kişi, dünyada da birleşemez.", context: "Bireyleşme" },
+    { quote: "Bilgiye sahip olmak yetmez, onu kullanmak gerekir; dilemek yetmez, yapmak gerekir.", context: "Eylem" },
+    { quote: "Siz bilinçaltınızı bilince dönüştürene kadar o sizin hayatınızı yönlendirecek ve siz ona kader diyeceksiniz.", context: "Kader Teorisi" },
+    { quote: "Her şey neye inandığınıza bağlıdır.", context: "İnanç ve Gerçeklik" },
+    { quote: "Yalnızlık, insanın etrafında kimsenin olmaması değil, kendisi için önemli görünen şeyleri başkalarına iletememesidir.", context: "Yalnızlık Psikolojisi" },
+    { quote: "Ruhun iyileşmesi için bütünlüğe ihtiyacı vardır.", context: "Ruhsal Bütünlük" }
   ],
   sokrates: [
     { quote: "Sorgulanmamış bir hayat, yaşanmaya değmez.", context: "Savunma (Apology)" },
-    { quote: "Bildiğim tek bir şey var, o da hiçbir şey bilmediğimdir.", context: "Bilgi Epistemolojisi" }
+    { quote: "Bildiğim tek bir şey var, o da hiçbir şey bilmediğimdir.", context: "Bilgi Epistemolojisi" },
+    { quote: "En derin arzular genellikle en ölümcül nefretle sonuçlanır.", context: "Duygu Paradoksu" },
+    { quote: "Eğitim bir kabı doldurmak değil, bir ateşi yakmaktır.", context: "Pedagoji" },
+    { quote: "Kendini tanı.", context: "Delphi Düsturu" },
+    { quote: "Bilgelik hayretle başlar.", context: "Felsefi Başlangıç" },
+    { quote: "Yemek yemek için yaşamamalısın, yaşamak için yemelisin.", context: "Ölçülülük" },
+    { quote: "Dünyayı hareket ettirecek olan önce kendini hareket ettirmelidir.", context: "İrade" },
+    { quote: "Kötülük bilgısizlikten gelir.", context: "Etik Entelektüalizm" },
+    { quote: "Dostluk bir ruhun iki ayrı bedende yaşamasıdır.", context: "Philia" }
   ],
   spinoza: [
     { quote: "Korku, ümit olmadan, ümit de korku olmadan varolamaz.", context: "Duyguların Doğası" },
-    { quote: "Barış savaşın yokluğu demek değildir; o bir erdem, ruhun bir halidir.", context: "Siyaset ve Etik" }
+    { quote: "Barış savaşın yokluğu demek değildir; o bir erdem, ruhun bir halidir.", context: "Siyaset ve Etik" },
+    { quote: "Pişmanlık bir erdem değildir, aksine bir hatadır.", context: "Etik" },
+    { quote: "Her şeyin en iyisi, en nadir olanıdır.", context: "Mükemmeliyet" },
+    { quote: "Özgür bir insan, ölümü her şeyden daha az düşünür.", context: "Ölüm ve Yaşam" },
+    { quote: "Anlamak, sevmenin başlangıcıdır.", context: "Bilgi ve Sevgi" },
+    { quote: "Duygu, ancak kendisinden daha güçlü ve karşıt bir duyguyla dizginlenebilir.", context: "Duygu Mekaniği" },
+    { quote: "Doğa bir bütündür ve her şey birbirine bağlıdır.", context: "Monizm" },
+    { quote: "Zihin, bedenin fikridir.", context: "Paralelizm" },
+    { quote: "Eylemde bulunma yeteneğimiz ne kadar artarsa, sevincimiz de o kadar artar.", context: "Conatus" }
   ],
   schopenhauer: [
     { quote: "İnsan istediğini yapabilir ancak istediğini isteyemez.", context: "İradenin Zorunluluğu" },
-    { quote: "Dünya benim tasarımımdır.", context: "İrade ve Tasarım Olarak Dünya" }
+    { quote: "Dünya benim tasarımımdır.", context: "İrade ve Tasarım Olarak Dünya" },
+    { quote: "Hayat, bir yanı trajedi, öbür yanı komedi olan bir oyundur.", context: "Varoluş" },
+    { quote: "Her ayrılık, bir parça ölümdür; her buluşma, bir parça diriliştir.", context: "İnsan İlişkileri" },
+    { quote: "Zekâ, iradenin hizmetindedir.", context: "İrade Metafiziği" },
+    { quote: "Okumak, kendi kafan yerine başkasının kafasıyla düşünmektir.", context: "Entelektüel Bağımsızlık" },
+    { quote: "Sağlık her şey değildir, ama sağlık olmadan her şey hiçtir.", context: "Yaşam Bilgeliği" },
+    { quote: "Mutluluk, acının yokluğundan başka bir şey değildir.", context: "Pessimizm" },
+    { quote: "Vahşi hayvanlar birbirini yer; insanlar ise birbirini aldatır.", context: "Cinnet ve Medeniyet" },
+    { quote: "Deha, nesnelliğin en üst seviyesidir.", context: "Estetik" }
   ]
 };
 
 export default function ChatPage() {
   const [activePersona, setActivePersona] = useState('spinoza');
-  // 'chat' | 'database' | 'instructions' | 'aphorisms' | 'thoughts'
   const [currentView, setCurrentView] = useState('chat'); 
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [isAdvancedMenuOpen, setIsAdvancedMenuOpen] = useState(false);
   const [myInput, setMyInput] = useState('');
   
   const [messages, setMessages] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isThinking, setIsThinking] = useState(false);
-  const [customPrompts, setCustomPrompts] = useState<Record<string, string>>(DEFAULT_PROMPTS);
   const [randomAphorism, setRandomAphorism] = useState<any>(null);
   
   const bottomRef = useRef<HTMLDivElement>(null);
@@ -66,6 +84,11 @@ export default function ChatPage() {
       bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
     }
   }, [messages, currentView, isThinking]);
+
+  // Context Isolation: Clear chat when persona changes
+  useEffect(() => {
+    setMessages([]);
+  }, [activePersona]);
 
   useEffect(() => {
     // Pick random aphorism when switching to the aphorisms view or changing persona in that view
@@ -100,8 +123,7 @@ export default function ChatPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
           messages: newMessages, 
-          persona: options.body.persona,
-          customSystemPrompt: customPrompts[options.body.persona]
+          persona: options.body.persona
         })
       });
 
@@ -192,7 +214,8 @@ export default function ChatPage() {
             </div>
           </div>
           
-          {/* Navigation Menu */}
+          {/* SIDEBAR NAVIGATION REMOVED ADVANCED SETTINGS PER USER REQUEST */}
+          
           <div className="flex flex-col gap-1 mb-8">
             <div className="text-[10px] text-zinc-500 font-bold tracking-[0.2em] uppercase mb-3 px-2 mt-2">Düşünce Sahası</div>
             
@@ -219,38 +242,6 @@ export default function ChatPage() {
               <Brain size={16} /> 
               <span className="font-medium text-[13px] tracking-wide">Düşünce Deneyleri</span>
             </button>
-          </div>
-
-          {/* ADVANCED SETTINGS ACCORDION */}
-          <div className="border-t border-[#1a1a1a] pt-4 mt-auto">
-             <button 
-               onClick={() => setIsAdvancedMenuOpen(!isAdvancedMenuOpen)}
-               className="w-full flex items-center justify-between text-zinc-500 hover:text-zinc-300 transition-colors px-2 py-2"
-             >
-                <span className="text-[10px] font-bold tracking-[0.2em] uppercase">Sistem Mimari Ayarları</span>
-                <ChevronRight size={14} className={`transform transition-transform ${isAdvancedMenuOpen ? 'rotate-90' : ''}`}/>
-             </button>
-             
-             {/* Sub-menu hidden initially */}
-             <div className={`overflow-hidden transition-all duration-300 ease-in-out ${isAdvancedMenuOpen ? 'max-h-40 mt-2 opacity-100' : 'max-h-0 opacity-0'}`}>
-                <div className="flex flex-col gap-1 px-1">
-                  <button 
-                    onClick={() => { setCurrentView('instructions'); setIsSidebarOpen(false); }} 
-                    className={`flex items-center gap-3 px-3 py-2 rounded-md transition-all duration-300 ${currentView === 'instructions' ? 'bg-amber-500/10 text-amber-500' : 'text-zinc-500 hover:text-zinc-300 hover:bg-[#111]'}`}
-                  >
-                    <Settings2 size={13} /> 
-                    <span className="font-mono text-[11px] tracking-wide">Talimat Çekirdeği</span>
-                  </button>
-                  
-                  <button 
-                    onClick={() => { setCurrentView('database'); setIsSidebarOpen(false); }} 
-                    className={`flex items-center gap-3 px-3 py-2 rounded-md transition-all duration-300 ${currentView === 'database' ? 'bg-amber-500/10 text-amber-500' : 'text-zinc-500 hover:text-zinc-300 hover:bg-[#111]'}`}
-                  >
-                    <Database size={13} /> 
-                    <span className="font-mono text-[11px] tracking-wide">Bulut Hafıza (RAG)</span>
-                  </button>
-                </div>
-             </div>
           </div>
 
         </div>
@@ -366,51 +357,7 @@ export default function ChatPage() {
           </>
         )}
 
-        {/* 2. INSTRUCTIONS VIEW */}
-        {currentView === 'instructions' && (
-          <div className="flex-1 p-6 md:px-12 md:py-8 overflow-y-auto fade-in h-full flex flex-col">
-            <div className="max-w-4xl w-full mx-auto flex-1 flex flex-col">
-              <div className="mb-8">
-                <h2 className="text-3xl font-serif text-zinc-50">{currentPersonaData?.name} Kuralları</h2>
-                <p className="text-zinc-400 text-xs mt-2 font-mono uppercase tracking-widest font-bold">Sistem Zihni Manipülasyon Paneli</p>
-              </div>
-              
-              <div className="bg-[#0f0f0f] border border-[#2a2a2a] rounded-xl flex-1 flex flex-col overflow-hidden shadow-[0_10px_40px_rgba(0,0,0,0.8)] relative">
-                 <div className="p-4 border-b border-[#2a2a2a] flex items-center justify-between text-zinc-400 text-xs font-mono uppercase bg-[#141414]">
-                   <span>system_prompt_engine.ts</span>
-                   <span className="text-amber-500/80 flex items-center gap-2 font-bold"><div className="w-1.5 h-1.5 rounded-full bg-amber-500/80 animate-pulse"/> LIVE EDIT</span>
-                 </div>
-                 <textarea 
-                    value={customPrompts[activePersona]}
-                    onChange={(e) => {
-                       setCustomPrompts({...customPrompts, [activePersona]: e.target.value})
-                    }}
-                    spellCheck="false"
-                    className="flex-1 w-full bg-black/20 p-6 text-amber-100/70 font-mono text-[13px] leading-[2] focus:outline-none resize-none scrollbar-hide shadow-inner"
-                 />
-              </div>
-              
-              <p className="text-red-500/50 text-[11px] mt-4 text-center tracking-wide font-mono uppercase">
-                ⚠️ UYARI: BU ALAN SİMÜLASYONUN ÇEKİRDEĞİDİR. DEĞİŞİKLİKLER DİREKT UYGULANIR.
-              </p>
-            </div>
-          </div>
-        )}
-
-        {/* 3. DATABASE VIEW */}
-        {currentView === 'database' && (
-          <div className="flex-1 p-6 md:p-12 fade-in">
-             <div className="max-w-4xl mx-auto flex flex-col items-center justify-center h-full text-center opacity-70 mt-20">
-                <div className="w-20 h-20 rounded-2xl bg-[#111] border border-[#333] flex items-center justify-center mb-8 shadow-[0_0_50px_rgba(0,0,0,0.8)]">
-                  <Database size={32} className="text-amber-500/60" />
-                </div>
-                <h2 className="text-2xl font-serif text-zinc-200 mb-4 tracking-widest uppercase">Pinecone RAG Bağlantısı Bekleniyor</h2>
-                <p className="text-zinc-400 max-w-md font-mono text-[12px] leading-loose text-justify px-4">
-                  Sistem, {currentPersonaData?.name}'un binlerce sayfalık orijinal dokümanlarını analiz etmeye hazır. Ancak şu an dış dünyadaki Pinecone vektör veritabanına kapalı devre durumundayız.
-                </p>
-             </div>
-          </div>
-        )}
+        {/* 2. INSTRUCTIONS & DATABASE VIEWS REMOVED PER USER REQUEST */}
 
         {/* 4. APHORISMS VIEW (Database-less engaging feature) */}
         {currentView === 'aphorisms' && (

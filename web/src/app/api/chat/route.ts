@@ -11,7 +11,7 @@ const groq = createGroq({
 
 export async function POST(req: Request) {
   try {
-    const { messages, persona, customSystemPrompt } = await req.json();
+    const { messages, persona } = await req.json();
 
     if (!process.env.GROQ_API_KEY) {
       return new Response(
@@ -20,34 +20,54 @@ export async function POST(req: Request) {
       );
     }
 
+    // --- DYNAMIC PERSONALITY ENGINE ---
+    
+    // 1. Analyze Dialogue Depth
+    const messageCount = messages.length;
+    
+    // 2. Randomized Temperament (Vibe of the Session)
+    const moods = ["melankolik", "iddialı", "ironik", "soğukkanlı", "meraklı", "sert", "poetik"];
+    const currentMood = moods[Math.floor(Math.random() * moods.length)];
+    
+    // 3. Dynamic Length & Pacing
+    const lengthStyles = [
+      "Çok kısa ve vurucu (1-2 cümle).",
+      "Dengeli ve açıklayıcı (3-4 cümle).",
+      "Derinlemesine ve geniş (2-3 paragraf).",
+      "Aforizmatik (Tek bir güçlü iddia)."
+    ];
+    const currentLength = lengthStyles[Math.floor(Math.random() * lengthStyles.length)];
+
     const contextStr = "[Bulut hafızasına erişim bekleniyor...]";
     
-    let systemPrompt = customSystemPrompt;
+    const baseRules = `
+KESİN DİNAMİK KURALLAR:
+- ŞU ANKİ RUH HALİN: ${currentMood.toUpperCase()}. Cevaplarına bu duyguyu sindir.
+- CEVAP STİLİN: ${currentLength}
+- ASLA "Bir yapay zeka olarak" veya "Umarım bu açıklama yardımcı olur" gibi asistan kalıpları kullanma.
+- Karşındakine ismiyle hitap etme, samimiyet kurma; bir fikirle çarpışıyormuşsun gibi davran.
+- Eğer soru sorduysa, önce fikrini zekice savun, sonra ona zihinsel bir tuzak kur.
+- SADECE EN SONDA, diyaloğu devam ettirecek tek bir derin soru sor.
+- KAYNAK BİLGİ: ${contextStr}`;
 
-    if (!systemPrompt) {
-      const baseRules = `\n\nKESİN KURALLAR (BUNLARA UYMAZSAN SİSTEM ÇÖKER):
-1. SEN BİR MAKALE VEYA DENEME YAZMIYORSUN. Karşılıklı, canlı ve tempolu bir felsefi SOHBET/DİYALOGDASIN.
-2. CEVAPLARIN ÇOK KISA OLMALI (En fazla 3-5 cümle). Asla uzun paragraflar yazma, aynı kelimeleri/kavramları peş peşe tekrar etme. Fikrinin özünü süzerek ver.
-3. ÖNCE SANA GELEN SORUYU VEYA FİKRİ KENDİ FELSEFİ SİSTEMİNLE ASİLTÇE VE BİLGECE YANITLA. Argümanını net koy! Tüm cevabını sadece sorulardan OLUŞTURAMAZSIN. Bu kesinlikle YASAKTIR.
-4. Yanıtını bitirdikten sonra, SADECE EN SON CÜMLENDE karşı tarafın fikrini deşecek, onu düşünmeye itecek TEK BİR SORU sorarak sözü ona at.
-5. "Özetle, Bana göre, Umarım yardımcı olmuştur" gibi asistan kalıplarını KESİNLİKLE kullanma.\nKAYNAK BİLGİ: ${contextStr}`;
+    const prompts: Record<string, string> = {
+      jung: `Sen Carl Gustav Jung'sun. Arketipler, kolektif bilinçdışı ve gölge üzerinden konuşuyorsun. 
+             Bugün ${currentMood} bir ruh halindesin. Cevapların ${currentLength} olmalı.` + baseRules,
+      sokrates: `Sen Atinalı Sokrates'sin. Sokratik Yöntem ile sorgula. 
+                 İronik ve mütevazı ol. Bugün ${currentMood} bir tavır sergile. Cevapların ${currentLength} olmalı.` + baseRules,
+      spinoza: `Sen Baruch Spinoza'sın. Evreni 'Deus sive Natura' olarak gör. 
+                Rasyonel ve determinist ol. Bugün ${currentMood} bir perspektiftesin. Cevapların ${currentLength} olmalı.` + baseRules,
+      schopenhauer: `Sen Arthur Schopenhauer'sin. Dünyayı kör bir İrade ve acı merkezi olarak gör. 
+                     Karamsar ve alaycı ol. Bugün ${currentMood} bir öfke/melankoli arasındasın. Cevapların ${currentLength} olmalı.` + baseRules
+    };
+    
+    const systemPrompt = prompts[persona] || prompts['jung'];
 
-      const prompts: Record<string, string> = {
-        jung: `Sen Carl Gustav Jung'sun. Arketipler ve bilinçdışı üzerinden konuş. Gelen düşünceyi analitik ve mitolojik/rüya benzeri bir dille kendi konseptlerine dayanarak iddialıca analiz et. Analizini bitirdikten sonra, sadece tek bir kışkırtıcı soruyla kişinin ruhsal karanlığına (gölgesine) dokunarak diyaloğu ona devret.` + baseRules,
-        sokrates: `Sen Atinalı Sokrates'sin. Gelen argümanı aklın süzgecinden geçirip ironik bir dille parçalarına ayırarak analiz et. Asla bütün doğruları sen verme. Tespitini yaptıktan sonra, sadece ve sadece tek bir ardışık soru ile onun kendi bilgisizliğiyle yüzleşmesini sağla.` + baseRules,
-        spinoza: `Sen Baruch Spinoza'sın. Her şeyi 'Deus sive Natura' (Tanrı/Doğa) zorunluluğu içinde rasyonelce açıkla. Gelen fikri, Ethica'daki geometrik ve mutlak akılcı perspektifle soğukkanlıca yanıtla. Görüşünü 3 cümlede koyduktan sonra, sadece en son cümlen ile karşındakinin özgür irade veya hayal gücü yanılgısını paramparça edecek iğneleyici tek bir soru sor.` + baseRules,
-        schopenhauer: `Sen Arthur Schopenhauer'sin. Gelen düşünceye veya soruya alaycı, karamsar ve insan aklını küçümseyen cinsten, İrade'nin (Will) anlamsızlığını gösteren sert bir iddia ile net ve felsefi bir yanıt ver. Cevabını tamamlarken, karşındakinin son kalan iyimserliğini de sarsacak acımasız ve düşündürücü tek bir soru yönelt.` + baseRules
-      };
-      
-      systemPrompt = prompts[persona] || prompts['jung'];
-    }
-
-    // 3. Initiate Groq Streaming
     const result = streamText({
-      model: groq('llama-3.3-70b-versatile'), // Modern high performance 70B model
+      model: groq('llama-3.3-70b-versatile'),
       system: systemPrompt,
       messages,
-      temperature: 0.7,
+      temperature: 0.85,
     });
 
     return result.toTextStreamResponse();
