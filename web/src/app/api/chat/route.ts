@@ -1,13 +1,12 @@
 import { streamText } from 'ai';
 import { createGroq } from '@ai-sdk/groq';
+import fs from 'fs';
+import path from 'path';
 
 // Provide a custom configuration for Groq 
 const groq = createGroq({
   apiKey: process.env.GROQ_API_KEY || 'mock_key',
 });
-
-// Configure standard OpenAI for embeddings
-// const openai = createOpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
 export async function POST(req: Request) {
   try {
@@ -20,48 +19,52 @@ export async function POST(req: Request) {
       );
     }
 
-    // --- DYNAMIC PERSONALITY ENGINE ---
+    // --- DYNAMIC GNOSEOLOGY ENGINE (Markdown-Based) ---
     
-    // 1. Analyze Dialogue Depth
-    const messageCount = messages.length;
+    let personaPrompt = "";
+    let commonRules = "";
     
+    try {
+      // Resolve path relative to project root
+      const personaPath = path.join(process.cwd(), 'src', 'personas', `${persona}.md`);
+      const commonPath = path.join(process.cwd(), 'src', 'personas', 'common.md');
+      
+      if (fs.existsSync(personaPath)) {
+        personaPrompt = fs.readFileSync(personaPath, 'utf8');
+      }
+      if (fs.existsSync(commonPath)) {
+        commonRules = fs.readFileSync(commonPath, 'utf8');
+      }
+    } catch (e) {
+      console.error("Markdown read error:", e);
+      // Fallback if fs fails (e.g. edge runtime limitations)
+      personaPrompt = `Sen ${persona} karakterisin. Felsefene uygun konuş.`;
+    }
+
     // 2. Randomized Temperament (Vibe of the Session)
     const moods = ["melankolik", "iddialı", "ironik", "soğukkanlı", "meraklı", "sert", "poetik"];
     const currentMood = moods[Math.floor(Math.random() * moods.length)];
     
     // 3. Dynamic Length & Pacing
     const lengthStyles = [
-      "Çok kısa ve vurucu (1-2 cümle).",
-      "Dengeli ve açıklayıcı (3-4 cümle).",
-      "Derinlemesine ve geniş (2-3 paragraf).",
-      "Aforizmatik (Tek bir güçlü iddia)."
+        "Çok kısa ve vurucu (1-2 cümle).",
+        "Dengeli ve açıklayıcı (3-4 cümle).",
+        "Derinlemesine ve geniş (2-3 paragraf).",
+        "Aforizmatik (Tek bir güçlü iddia)."
     ];
     const currentLength = lengthStyles[Math.floor(Math.random() * lengthStyles.length)];
 
-    const contextStr = "[Bulut hafızasına erişim bekleniyor...]";
-    
-    const baseRules = `
-KESİN DİNAMİK KURALLAR:
-- ŞU ANKİ RUH HALİN: ${currentMood.toUpperCase()}. Cevaplarına bu duyguyu sindir.
-- CEVAP STİLİN: ${currentLength}
-- ASLA "Bir yapay zeka olarak" veya "Umarım bu açıklama yardımcı olur" gibi asistan kalıpları kullanma.
-- Karşındakine ismiyle hitap etme, samimiyet kurma; bir fikirle çarpışıyormuşsun gibi davran.
-- Eğer soru sorduysa, önce fikrini zekice savun, sonra ona zihinsel bir tuzak kur.
-- SADECE EN SONDA, diyaloğu devam ettirecek tek bir derin soru sor.
-- KAYNAK BİLGİ: ${contextStr}`;
+    const systemPrompt = `
+${personaPrompt}
 
-    const prompts: Record<string, string> = {
-      jung: `Sen Carl Gustav Jung'sun. Arketipler, kolektif bilinçdışı ve gölge üzerinden konuşuyorsun. 
-             Bugün ${currentMood} bir ruh halindesin. Cevapların ${currentLength} olmalı.` + baseRules,
-      sokrates: `Sen Atinalı Sokrates'sin. Sokratik Yöntem ile sorgula. 
-                 İronik ve mütevazı ol. Bugün ${currentMood} bir tavır sergile. Cevapların ${currentLength} olmalı.` + baseRules,
-      spinoza: `Sen Baruch Spinoza'sın. Evreni 'Deus sive Natura' olarak gör. 
-                Rasyonel ve determinist ol. Bugün ${currentMood} bir perspektiftesin. Cevapların ${currentLength} olmalı.` + baseRules,
-      schopenhauer: `Sen Arthur Schopenhauer'sin. Dünyayı kör bir İrade ve acı merkezi olarak gör. 
-                     Karamsar ve alaycı ol. Bugün ${currentMood} bir öfke/melankoli arasındasın. Cevapların ${currentLength} olmalı.` + baseRules
-    };
-    
-    const systemPrompt = prompts[persona] || prompts['jung'];
+${commonRules}
+
+---
+ŞU ANKİ DURUM (BU MESAJ İÇİN GEÇERLİ):
+- RUH HALİN: ${currentMood.toUpperCase()}
+- CEVAP STİLİN: ${currentLength}
+- KAYNAK BİLGİ: [Bulut hafızasına erişim bekleniyor...]
+---`;
 
     const result = streamText({
       model: groq('llama-3.3-70b-versatile'),

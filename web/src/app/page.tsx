@@ -136,34 +136,61 @@ export default function ChatPage() {
       if (!res.body) return;
       const reader = res.body.getReader();
       const decoder = new TextDecoder();
-      let streamedResponse = '';
+      let fullResponse = '';
+      let displayedResponse = '';
+      
+      // Create the bot message placeholder
+      const botMessageId = Date.now().toString() + 'bot';
+      setMessages(prev => [...prev, { id: botMessageId, role: 'assistant', content: '' }]);
 
-      setMessages(prev => [...prev, { id: Date.now().toString() + 'bot', role: 'assistant', content: '' }]);
+      // Typewriter processing loop (independent of streaming speed)
+      const typeSpeed = 22; // ms per character (Reading speed)
+      let typeIdx = 0;
+      
+      const typeInterval = setInterval(() => {
+        if (typeIdx < fullResponse.length) {
+          displayedResponse += fullResponse[typeIdx];
+          typeIdx++;
+          
+          setMessages(prev => {
+            const newMsgList = [...prev];
+            const msgIdx = newMsgList.findIndex(m => m.id === botMessageId);
+            if (msgIdx !== -1) {
+              newMsgList[msgIdx] = { ...newMsgList[msgIdx], content: displayedResponse };
+            }
+            return newMsgList;
+          });
+        }
+      }, typeSpeed);
 
+      // Streaming loop
       while (true) {
         const { done, value } = await reader.read();
         if (done) break;
-        
         const chunk = decoder.decode(value, { stream: true });
-        streamedResponse += chunk;
-
-        setMessages(prev => {
-          const newMsgList = [...prev];
-          newMsgList[newMsgList.length - 1] = { ...newMsgList[newMsgList.length - 1], content: streamedResponse };
-          return newMsgList;
-        });
+        fullResponse += chunk;
       }
 
-      if (!streamedResponse.trim()) {
-        setMessages(prev => {
-          const newMsgList = [...prev];
-          newMsgList[newMsgList.length - 1] = { ...newMsgList[newMsgList.length - 1], content: '⚠️ Groq Sunucusundan yanıt alınamadı. Limit aşımı yaşandı.' };
-          return newMsgList;
-        });
-      }
+      // Finalize: wait for typewriter to finish
+      const checkFinished = setInterval(() => {
+        if (typeIdx >= fullResponse.length) {
+          clearInterval(typeInterval);
+          clearInterval(checkFinished);
+          setIsLoading(false);
+          
+          if (!fullResponse.trim()) {
+            setMessages(prev => {
+               const newMsgList = [...prev];
+               const msgIdx = newMsgList.findIndex(m => m.id === botMessageId);
+               if (msgIdx !== -1) newMsgList[msgIdx].content = '⚠️ Groq Sunucusundan yanıt alınamadı. Limit aşımı yaşandı.';
+               return newMsgList;
+            });
+          }
+        }
+      }, 100);
+
     } catch (err) {
       setMessages(prev => [...prev, { id: Date.now().toString(), role: 'assistant', content: 'Beklenmeyen ağ hatası oluştu.' }]);
-    } finally {
       setIsLoading(false);
     }
   };
