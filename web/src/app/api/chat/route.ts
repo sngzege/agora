@@ -69,14 +69,17 @@ ${personaPrompt}
 ${commonRules}
 
 ---
-KRİTİK TALİMATLAR (ÖNCELİKLİ):
-- ASLA LİSTE, MADDELEME VEYA BULLET-POINT KULLANMA. Sadece akışkan paragraflar.
-- ASLA "Sessiz kalıyorum" veya "Cevap vermiyorum" gibi bir ifade kullanma. Susaacaksan sadece yazmayı bırak.
-- DİL: Kesinlikle ve sadece derinlikli felsefi TÜRKÇE. (İngilizce/Latince sızmasın).
+AKSİYOMATİK FİLTRE (ÖNCELİKLİ):
+1. LATERAL MAPPING: Kullanıcının modern kavramlarını kendi tarihsel felsefene tercüme et.
+2. DIALECTICAL ROTATION: Statik olma. Kullanıcıya bazen katıl, bazen sars, bazen perspektifi tamamen değiştir.
+3. PROSE ONLY: Asla liste/maddeleme yapma. Sadece edebi, akışkan paragraflar.
+4. NO META-TALK: Stratejini ("Şimdi perspektif değiştiriyorum" vb.) asla açıklama.
+5. PURE TURKISH: Kesinlikle ve sadece derinlikli felsefi TÜRKÇE. (İngilizce/Latince sızmasın).
+
+GÜNCEL DURUM:
 - RUH HALİN: ${currentMood.toUpperCase()}
 - CEVAP STİLİN: ${currentLength}
 - KAPANIŞ STRATEJİN: ${currentConclusion}
-- KAYNAK BİLGİ: [Bulut hafızasına erişim bekleniyor...]
 ---`;
 
     const result = streamText({
