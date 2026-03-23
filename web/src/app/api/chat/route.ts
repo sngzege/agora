@@ -69,11 +69,13 @@ ${personaPrompt}
 ${commonRules}
 
 ---
-ŞU ANKİ DURUM (BU MESAJ İÇİN GEÇERLİ):
+KRİTİK TALİMATLAR (ÖNCELİKLİ):
+- ASLA LİSTE, MADDELEME VEYA BULLET-POINT KULLANMA. Sadece akışkan paragraflar.
+- ASLA "Sessiz kalıyorum" veya "Cevap vermiyorum" gibi bir ifade kullanma. Susaacaksan sadece yazmayı bırak.
+- DİL: Kesinlikle ve sadece derinlikli felsefi TÜRKÇE. (İngilizce/Latince sızmasın).
 - RUH HALİN: ${currentMood.toUpperCase()}
 - CEVAP STİLİN: ${currentLength}
 - KAPANIŞ STRATEJİN: ${currentConclusion}
-- DİL: Sadece TÜRKÇE (Asla İngilizce/Latince kaçırma).
 - KAYNAK BİLGİ: [Bulut hafızasına erişim bekleniyor...]
 ---`;
 
