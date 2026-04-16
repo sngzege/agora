@@ -1,0 +1,10 @@
+# Ignore Python files in root to prevent Vercel from detecting a Python project
+ingest.py
+rag_engine.py
+requirements.txt
+chroma_db/
+__pycache__/
+docs/
+cevaplar.txt
+*.code-workspace
+*.txt
