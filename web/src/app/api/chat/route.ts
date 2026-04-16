@@ -1,20 +1,21 @@
 import { streamText } from 'ai';
-import { createGroq } from '@ai-sdk/groq';
+import { createOpenAI } from '@ai-sdk/openai';
 import fs from 'fs';
 import path from 'path';
 
-// Provide a custom configuration for Groq 
-const groq = createGroq({
-  apiKey: process.env.GROQ_API_KEY || 'mock_key',
+// Provide a custom configuration for OpenRouter (OpenAI-compatible)
+const openrouter = createOpenAI({
+  baseURL: 'https://openrouter.ai/api/v1',
+  apiKey: process.env.OPENROUTER_API_KEY || 'mock_key',
 });
 
 export async function POST(req: Request) {
   try {
     const { messages, persona } = await req.json();
 
-    if (!process.env.GROQ_API_KEY) {
+    if (!process.env.OPENROUTER_API_KEY) {
       return new Response(
-        JSON.stringify({ error: "Lütfen .env.local dosyasına GROQ_API_KEY ekleyin." }),
+        JSON.stringify({ error: "Lütfen .env.local dosyasına OPENROUTER_API_KEY ekleyin." }),
         { status: 401, headers: { 'Content-Type': 'application/json' } }
       );
     }
@@ -100,15 +101,35 @@ Cevabı göndermeden önce şu 4 soruyu sor ve gerekirse revize et:
 </SELF_AUDIT_BEFORE_OUTPUT>`;
 
     const result = streamText({
-      model: groq('llama-3.3-70b-versatile'),
+      model: openrouter('google/gemma-4-26b-a4b-it:free'),
       system: systemPrompt,
       messages,
       temperature: 0.85,
     });
 
     return result.toTextStreamResponse();
-  } catch (error) {
+  } catch (error: any) {
     console.error("Chat API Error:", error);
+    
+    // Handle Quota/Rate Limit Errors from OpenRouter/AI SDK
+    const isQuotaError = 
+      error.status === 429 || 
+      error.status === 402 || 
+      (error.message && (
+        error.message.toLowerCase().includes("limit") || 
+        error.message.toLowerCase().includes("quota") || 
+        error.message.toLowerCase().includes("balance") ||
+        error.message.toLowerCase().includes("credit")
+      ));
+
+    if (isQuotaError) {
+      // Return a character-consistent message even if the API fails
+      return new Response(
+        "Zihnimin odaları tozlandı, kelimelerim tükendi... Yoruldum, başka bir zaman gel.",
+        { status: 200, headers: { 'Content-Type': 'text/plain; charset=utf-8' } }
+      );
+    }
+
     const err = error as Error;
     return new Response(JSON.stringify({ error: err.message || "Internal Server Error" }), { status: 500 });
   }
