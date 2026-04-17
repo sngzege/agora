@@ -15,7 +15,6 @@
 
 # agents
 /.agent
-
 # next.js
 /.next/
 /out/
@@ -33,7 +32,7 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
-# env files
+# env files (can opt-in for committing if needed)
 .env*
 
 # vercel
