@@ -182,7 +182,9 @@ export default function ChatPage() {
             setMessages(prev => {
                const newMsgList = [...prev];
                const msgIdx = newMsgList.findIndex(m => m.id === botMessageId);
-               if (msgIdx !== -1) newMsgList[msgIdx].content = '⚠️ Zihin sunucusundan yanıt alınamadı. Limit aşımı veya teknik bir sorun yaşandı.';
+               if (msgIdx !== -1) {
+                  newMsgList[msgIdx].content = '⚠️ Zihin sunucusundan boş yanıt döndü. Model kapasite sınırına takılmış olabilir veya teknik bir kopukluk yaşandı. Lütfen tekrar deneyin.';
+               }
                return newMsgList;
             });
           }
