@@ -129,7 +129,15 @@ Cevabı düşünürken kendi iç sesine şunu sor ve öyle yanıt ver:
       );
     }
 
-    const err = error as Error;
-    return new Response(JSON.stringify({ error: err.message || "Internal Server Error" }), { status: 500 });
+    const err = error as any;
+    const errorMessage = err.message || "Bilinmeyen bir hata oluştu.";
+    
+    return new Response(
+      JSON.stringify({ 
+        error: `Agora bağlantı kuramıyor: ${errorMessage}`,
+        details: err.status ? `Status: ${err.status}` : undefined
+      }), 
+      { status: err.status || 500, headers: { 'Content-Type': 'application/json' } }
+    );
   }
 }
