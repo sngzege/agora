@@ -2,6 +2,7 @@ import { streamText } from 'ai';
 import { createOpenAI } from '@ai-sdk/openai';
 import fs from 'fs';
 import path from 'path';
+import { AI_CONFIG } from '@/lib/ai-config';
 
 // Provide a custom configuration for OpenRouter (OpenAI-compatible)
 const openrouter = createOpenAI({
@@ -99,47 +100,65 @@ CevabÄ± dÃ¼ÅŸÃ¼nÃ¼rken kendi iÃ§ sesine ÅŸunu sor ve Ã¶yle yanÄ
 - TÃ¼rkÃ§e dÄ±ÅŸÄ±nda bir kelime veya Latin alfabesi dÄ±ÅŸÄ±nda bir karakter var mÄ±? (Cevap evet ise: Derhal saf TÃ¼rkÃ§esiyle deÄŸiÅŸtir.)
 </SELF_AUDIT_BEFORE_OUTPUT>`;
 
-    const result = streamText({
-      model: openrouter('meta-llama/llama-3.3-70b-instruct:free'),
-      system: systemPrompt,
-      messages,
-      temperature: 0.85,
-    });
+    // Helper function to attempt streaming with a specific model
+    const attemptStreaming = async (modelId: string) => {
+      return streamText({
+        model: openrouter(modelId),
+        system: systemPrompt,
+        messages,
+        temperature: AI_CONFIG.TEMPERATURE,
+      });
+    };
 
-    return result.toTextStreamResponse();
-  } catch (error: any) {
-    console.error("Chat API Error:", error);
-    
-    // Handle Quota/Rate Limit Errors from OpenRouter/AI SDK
-    const isQuotaError = 
-      error.status === 429 || 
-      error.status === 402 || 
-      (error.message && (
-        error.message.toLowerCase().includes("limit") || 
-        error.message.toLowerCase().includes("quota") || 
-        error.message.toLowerCase().includes("balance") ||
-        error.message.toLowerCase().includes("credit")
-      ));
+    try {
+      // 1. Birincil modeli dene
+      const result = await attemptStreaming(AI_CONFIG.PRIMARY_MODEL);
+      return result.toTextStreamResponse();
+    } catch (error: any) {
+      console.error("Primary Model Error:", error);
+      
+      // Kota hatası kontrolü
+      const isQuotaError = 
+        error.status === 429 || 
+        error.status === 402 || 
+        (error.message && (
+          error.message.toLowerCase().includes("limit") || 
+          error.message.toLowerCase().includes("quota") || 
+          error.message.toLowerCase().includes("balance") ||
+          error.message.toLowerCase().includes("credit")
+        ));
 
-    if (isQuotaError) {
+      if (isQuotaError) {
+        console.log("Quota exceeded on primary model. Attempting fallback...");
+        try {
+          // 2. Yedek modeli dene
+          const fallbackResult = await attemptStreaming(AI_CONFIG.FALLBACK_MODEL);
+          return fallbackResult.toTextStreamResponse();
+        } catch (fallbackError: any) {
+          console.error("Fallback Model Error:", fallbackError);
+          return new Response(
+            JSON.stringify({ 
+              error: "Zihnimin odalari tozlandi, tum kaynaklar tukendi... (Tüm modeller kapali)",
+              isQuota: true 
+            }),
+            { status: 429, headers: { 'Content-Type': 'application/json' } }
+          );
+        }
+      }
+
+      // Genel hata
+      const err = error as any;
+      const errorMessage = err.message || "Bilinmeyen bir hata oluÅŸtu.";
       return new Response(
         JSON.stringify({ 
-          error: "Zihnimin odalari tozlandi, kelimelerim tukendi... (Kapasite Siniri)",
-          isQuota: true 
-        }),
-        { status: 429, headers: { 'Content-Type': 'application/json' } }
+          error: `Agora baÄŸlantÄ± kuramÄ±yor: ${errorMessage}`,
+          details: err.status ? `Status: ${err.status}` : undefined
+        }), 
+        { status: err.status || 500, headers: { 'Content-Type': 'application/json' } }
       );
     }
-
-    const err = error as any;
-    const errorMessage = err.message || "Bilinmeyen bir hata oluÅŸtu.";
-    
-    return new Response(
-      JSON.stringify({ 
-        error: `Agora baÄŸlantÄ± kuramÄ±yor: ${errorMessage}`,
-        details: err.status ? `Status: ${err.status}` : undefined
-      }), 
-      { status: err.status || 500, headers: { 'Content-Type': 'application/json' } }
-    );
+  } catch (globalError: any) {
+    console.error("Global route error:", globalError);
+    return new Response(JSON.stringify({ error: "Kritik bir hata oluştu." }), { status: 500 });
   }
 }
