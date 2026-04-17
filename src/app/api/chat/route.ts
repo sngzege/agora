@@ -107,39 +107,51 @@ CevabÄ± dÃ¼ÅŸÃ¼nÃ¼rken kendi iÃ§ sesine ÅŸunu sor ve Ã¶yle yanÄ
         system: systemPrompt,
         messages,
         temperature: AI_CONFIG.TEMPERATURE,
+        maxRetries: 0, // Fallback immediately on first failure
       });
     };
 
     try {
       // 1. Birincil modeli dene
+      console.log(`Attempting primary model: ${AI_CONFIG.PRIMARY_MODEL}`);
       const result = await attemptStreaming(AI_CONFIG.PRIMARY_MODEL);
       return result.toTextStreamResponse();
     } catch (error: any) {
       console.error("Primary Model Error:", error);
       
-      // Kota hatası kontrolü
+      // Kota hatası kontrolü (statusCode ve nested error yapılarını kapsar)
+      const getStatusCode = (err: any): number | undefined => {
+        return err.statusCode || err.status || err.lastError?.statusCode || err.cause?.statusCode;
+      };
+
+      const statusCode = getStatusCode(error);
+      const errMsg = error.message?.toLowerCase() || "";
+      
       const isQuotaError = 
-        error.status === 429 || 
-        error.status === 402 || 
-        (error.message && (
-          error.message.toLowerCase().includes("limit") || 
-          error.message.toLowerCase().includes("quota") || 
-          error.message.toLowerCase().includes("balance") ||
-          error.message.toLowerCase().includes("credit")
-        ));
+        statusCode === 429 || 
+        statusCode === 402 || 
+        errMsg.includes("limit") || 
+        errMsg.includes("quota") || 
+        errMsg.includes("balance") ||
+        errMsg.includes("credit") ||
+        errMsg.includes("retry") ||
+        errMsg.includes("provider returned error");
 
       if (isQuotaError) {
-        console.log("Quota exceeded on primary model. Attempting fallback...");
+        console.log("Quota or Rate Limit exceeded. Attempting fallback to:", AI_CONFIG.FALLBACK_MODEL);
         try {
           // 2. Yedek modeli dene
           const fallbackResult = await attemptStreaming(AI_CONFIG.FALLBACK_MODEL);
           return fallbackResult.toTextStreamResponse();
         } catch (fallbackError: any) {
           console.error("Fallback Model Error:", fallbackError);
+          const fallbackStatusCode = getStatusCode(fallbackError);
+          
           return new Response(
             JSON.stringify({ 
-              error: "Zihnimin odalari tozlandi, tum kaynaklar tukendi... (Tüm modeller kapali)",
-              isQuota: true 
+              error: "Zihnimin odalari tozlandi, tum kaynaklar tukendi... (Tum modeller kapasite sinirinda)",
+              isQuota: true,
+              statusCode: fallbackStatusCode
             }),
             { status: 429, headers: { 'Content-Type': 'application/json' } }
           );
@@ -148,13 +160,15 @@ CevabÄ± dÃ¼ÅŸÃ¼nÃ¼rken kendi iÃ§ sesine ÅŸunu sor ve Ã¶yle yanÄ
 
       // Genel hata
       const err = error as any;
-      const errorMessage = err.message || "Bilinmeyen bir hata oluÅŸtu.";
+      const genericStatusCode = getStatusCode(err) || 500;
+      const displayMessage = err.message || "Bilinmeyen bir hata oluÅŸtu.";
+      
       return new Response(
         JSON.stringify({ 
-          error: `Agora baÄŸlantÄ± kuramÄ±yor: ${errorMessage}`,
-          details: err.status ? `Status: ${err.status}` : undefined
+          error: `Agora baÄŸlantÄ± kuramÄ±yor: ${displayMessage}`,
+          details: `Status: ${genericStatusCode}`
         }), 
-        { status: err.status || 500, headers: { 'Content-Type': 'application/json' } }
+        { status: genericStatusCode, headers: { 'Content-Type': 'application/json' } }
       );
     }
   } catch (globalError: any) {
