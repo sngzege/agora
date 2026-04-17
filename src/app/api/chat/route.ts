@@ -100,77 +100,97 @@ CevabÄ± dÃ¼ÅŸÃ¼nÃ¼rken kendi iÃ§ sesine ÅŸunu sor ve Ã¶yle yanÄ
 - TÃ¼rkÃ§e dÄ±ÅŸÄ±nda bir kelime veya Latin alfabesi dÄ±ÅŸÄ±nda bir karakter var mÄ±? (Cevap evet ise: Derhal saf TÃ¼rkÃ§esiyle deÄŸiÅŸtir.)
 </SELF_AUDIT_BEFORE_OUTPUT>`;
 
-    // Helper function to attempt streaming with a specific model
-    const attemptStreaming = async (modelId: string) => {
-      return streamText({
-        model: openrouter(modelId),
-        system: systemPrompt,
-        messages,
-        temperature: AI_CONFIG.TEMPERATURE,
-        maxRetries: 0, // Fallback immediately on first failure
-      });
-    };
+    // Modelleri sırayla denemek için havuz oluştur
+    const modelPool = [
+      AI_CONFIG.PRIMARY_MODEL,
+      AI_CONFIG.FALLBACK_MODEL,
+      AI_CONFIG.SECONDARY_FALLBACK_MODEL
+    ].filter(Boolean);
 
-    try {
-      // 1. Birincil modeli dene
-      console.log(`Attempting primary model: ${AI_CONFIG.PRIMARY_MODEL}`);
-      const result = await attemptStreaming(AI_CONFIG.PRIMARY_MODEL);
-      return result.toTextStreamResponse();
-    } catch (error: any) {
-      console.error("Primary Model Error:", error);
+    // Hata durumunda durumu analiz eden ve statusCode dönen yardımcı fonksiyon
+    const getDetailedErrorInfo = (err: any) => {
+      const statusCode = err.statusCode || 
+                        err.status || 
+                        err.lastError?.statusCode || 
+                        err.cause?.statusCode || 
+                        err.data?.error?.code || // OpenRouter nested error code
+                        (typeof err.data === 'string' && err.data.includes('429') ? 429 : undefined);
       
-      // Kota hatası kontrolü (statusCode ve nested error yapılarını kapsar)
-      const getStatusCode = (err: any): number | undefined => {
-        return err.statusCode || err.status || err.lastError?.statusCode || err.cause?.statusCode;
-      };
-
-      const statusCode = getStatusCode(error);
-      const errMsg = error.message?.toLowerCase() || "";
+      const message = (err.message || "").toLowerCase();
+      const responseBody = typeof err.responseBody === 'string' ? err.responseBody.toLowerCase() : "";
+      const dataMessage = err.data?.error?.message?.toLowerCase() || "";
       
-      const isQuotaError = 
+      const isQuota = 
         statusCode === 429 || 
         statusCode === 402 || 
-        errMsg.includes("limit") || 
-        errMsg.includes("quota") || 
-        errMsg.includes("balance") ||
-        errMsg.includes("credit") ||
-        errMsg.includes("retry") ||
-        errMsg.includes("provider returned error");
+        message.includes("limit") || 
+        message.includes("quota") || 
+        message.includes("balance") ||
+        message.includes("credit") ||
+        message.includes("retry") ||
+        message.includes("provider returned error") ||
+        responseBody.includes("rate-limited") ||
+        dataMessage.includes("rate-limited");
 
-      if (isQuotaError) {
-        console.log("Quota or Rate Limit exceeded. Attempting fallback to:", AI_CONFIG.FALLBACK_MODEL);
-        try {
-          // 2. Yedek modeli dene
-          const fallbackResult = await attemptStreaming(AI_CONFIG.FALLBACK_MODEL);
-          return fallbackResult.toTextStreamResponse();
-        } catch (fallbackError: any) {
-          console.error("Fallback Model Error:", fallbackError);
-          const fallbackStatusCode = getStatusCode(fallbackError);
-          
+      return { statusCode, isQuota };
+    };
+
+    // Modelleri sırayla dene
+    for (let i = 0; i < modelPool.length; i++) {
+      const currentModel = modelPool[i];
+      try {
+        console.log(`[Agora AI] Attempting model ${i+1}/${modelPool.length}: ${currentModel}`);
+        
+        const result = await streamText({
+          model: openrouter(currentModel),
+          system: systemPrompt,
+          messages,
+          temperature: AI_CONFIG.TEMPERATURE,
+          maxRetries: 0, // Fallback'i biz kendimiz yönetiyoruz
+        });
+
+        return result.toTextStreamResponse();
+      } catch (error: any) {
+        const info = getDetailedErrorInfo(error);
+        const statusCode = info.statusCode;
+        const isQuota = info.isQuota;
+
+        console.error(`[Agora AI] Model ${currentModel} failed (Status: ${statusCode}, Quota: ${isQuota})`);
+
+        // Eğer kota/limit hatasıysa ve denenecek başka model varsa devam et
+        if (isQuota && i < modelPool.length - 1) {
+          console.log(`[Agora AI] Rate limit hit. Moving to next model...`);
+          continue;
+        }
+
+        // Eğer son model de hata verdiyse veya hata kota hatası değilse (örn. Auth) hata dön
+        const displayMessage = error.message || "Bilinmeyen bir hata oluştu.";
+        const isLastModel = i === modelPool.length - 1;
+
+        if (isLastModel && isQuota) {
           return new Response(
             JSON.stringify({ 
-              error: "Zihnimin odalari tozlandi, tum kaynaklar tukendi... (Tum modeller kapasite sinirinda)",
+              error: "Zihnimin odaları tozlandı, tüm kaynaklar tükendi... (Tüm modeller kapasite sınırında)",
               isQuota: true,
-              statusCode: fallbackStatusCode
+              statusCode: statusCode || 429
             }),
             { status: 429, headers: { 'Content-Type': 'application/json' } }
           );
         }
-      }
 
-      // Genel hata
-      const err = error as any;
-      const genericStatusCode = getStatusCode(err) || 500;
-      const displayMessage = err.message || "Bilinmeyen bir hata oluÅŸtu.";
-      
-      return new Response(
-        JSON.stringify({ 
-          error: `Agora baÄŸlantÄ± kuramÄ±yor: ${displayMessage}`,
-          details: `Status: ${genericStatusCode}`
-        }), 
-        { status: genericStatusCode, headers: { 'Content-Type': 'application/json' } }
-      );
+        // Genel kritik hata (Quota dışı)
+        return new Response(
+          JSON.stringify({ 
+            error: `Agora bağlantı kuramıyor: ${displayMessage}`,
+            details: `Status: ${statusCode || 500}, Model: ${currentModel}`
+          }), 
+          { status: statusCode || 500, headers: { 'Content-Type': 'application/json' } }
+        );
+      }
     }
+
+    // Teorik olarak buraya ulaşmamalı
+    return new Response(JSON.stringify({ error: "Modellere erisilemedi." }), { status: 500 });
   } catch (globalError: any) {
     console.error("Global route error:", globalError);
     return new Response(JSON.stringify({ error: "Kritik bir hata oluştu." }), { status: 500 });
